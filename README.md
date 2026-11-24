@@ -10,7 +10,7 @@
 - Supabase: Auth + PostgreSQL + Row Level Security for shared workspaces
 - Setup guide: [GitHub Pages + Supabase Cloud](docs/GITHUB_PAGES_CLOUD_SETUP.md)
 - Database bootstrap: [supabase/schema.sql](supabase/schema.sql)
-- Public browser settings: root `config.js` (publishable/anon key only; never add a service-role key)
+- Public browser settings: root `config.js` (publishable key only; never add a service-role key)
 
 The browser app requires a Supabase project and the SQL bootstrap before sign-in and cloud data functions are available. GitHub Pages does not run PHP or host a database.
 
