@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Arr;
-use Illuminate\SupportFacades\Http;
+use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class LedOpenDataClient
@@ -13,25 +13,16 @@ class LedOpenDataClient
         private readonly int $timeout = 20,
     ) {}
 
-    /**
-     * Fetch a CKAN package and its metadata.
-     */
     public function packageShow(string $id): array
     {
         return $this->action('package_show', ['id' => $id]);
     }
 
-    /**
-     * Fetch one CKAN resource and its metadata.
-     */
     public function resourceShow(string $resourceId): array
     {
         return $this->action('resource_show', ['id' => $resourceId]);
     }
 
-    /**
-     * Query a resource only when the CKAN DataStore API is enabled for it.
-     */
     public function datastoreSearch(string $resourceId, int $limit = 5, int $offset = 0): array
     {
         if ($limit < 1 || $limit > 100 || $offset < 0) {
