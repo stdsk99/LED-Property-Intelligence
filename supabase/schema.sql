@@ -135,6 +135,14 @@ create policy "properties analyst update" on public.properties for update to aut
 drop policy if exists "properties admin delete" on public.properties;
 create policy "properties admin delete" on public.properties for delete to authenticated using(public.has_workspace_role(organization_id,array['owner','admin']));
 
+-- Restrict Data API access to authenticated users; RLS then scopes rows by workspace.
+revoke all on table public.profiles, public.organizations, public.organization_members, public.workspace_invitations, public.properties from anon;
+revoke all on function public.is_workspace_member(uuid) from public, anon;
+revoke all on function public.has_workspace_role(uuid,text[]) from public, anon;
+revoke all on function public.create_workspace(text) from public, anon;
+revoke all on function public.invite_workspace_member(text,text,uuid) from public, anon;
+grant execute on function public.is_workspace_member(uuid) to authenticated;
+grant execute on function public.has_workspace_role(uuid,text[]) to authenticated;
 grant usage on schema public to authenticated;
 grant select,insert,update on public.profiles to authenticated;
 grant select on public.organizations to authenticated;
