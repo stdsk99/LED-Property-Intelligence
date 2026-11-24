@@ -1,10 +1,13 @@
-name: Deploy static project preview to GitHub Pages
+name: Deploy LED-PI to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
       - 'index.html'
+      - 'config.js'
+      - 'assets/**'
+      - '.nojekyll'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -26,6 +29,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate frontend files
+        run: |
+          test -s index.html
+          test -s config.js
+          test -s assets/app.js
+          test -s assets/app.css
+          node --input-type=module --check < assets/app.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
