@@ -1,5 +1,5 @@
 # Source Assessment — LED Property Intelligence
-**Assessment version:** 0.3  
+**Assessment version:** 0.4  
 **Assessment date:** 2026-11-24  
 **Status:** Preliminary desk assessment; live record-level extraction and permission checks remain pending.
 
@@ -11,7 +11,7 @@ A direct inspection of the current catalog shows 43 published datasets and an ac
 
 A separate dataset, “มูลค่าการผลักดันทรัพย์สินออกจากกระบวนการบังคับคดีด้วยการขายทอดตลาด”, contains official officer-assessed values at seizure for land, buildings and condominiums. It is also aggregate/statistical rather than per-property valuation, is updated monthly, and its metadata reports last data update 7 August 2569 (2026). It is potentially useful for macro-level trend analysis, but **must not be treated as an individual property's appraisal or current market price**. It also carries a CC BY-NC license.
 
-The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to respond with version 3, but a dataset-specific API action/resource download was not fully verified in this inspection. A CSV resource link was visible, but the web inspection tool could not retrieve the file contents. Therefore API-based ingestion is technically promising but not yet approved or validated end-to-end.
+The catalog advertises access through an API guide. The dataset page identifies package name `led_it_0002`; its CSV resource page identifies resource UUID `a7414d95-b70a-43a7-9af6-a9f4cdc793e4`. The published CSV URL is https://opendata.led.go.th/dataset/led_it_0002/resource/a7414d95-b70a-43a7-9af6-a9f4cdc793e4/download/auction-01-07-2569.csv. The browser inspection could read the resource metadata and data dictionary but could not retrieve the CSV body (cache miss). Direct API action URLs (package_show, resource_show and datastore_search) were not readable through the web inspection layer. This is an inspection limitation, not proof that the server API is down. A Laravel smoke-test command has therefore been added to the starter code; it must be run in a configured Laravel environment to establish actual HTTP/API behavior.
 
 **Implementation decision:** Do not build a production scraper or commercial connector yet. Treat aggregate Open Data as optional statistical context only. First obtain current written clarification and inspect the e-Service and dataset terms. In parallel, implement a CSV/XLSX import path with provenance and validation.
 
@@ -23,7 +23,8 @@ The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to r
 | Auction property search | https://asset.led.go.th/newbidreg | Official e-Service link labelled “ค้นหาทรัพย์ประกาศขายทอดตลาด” | URL verified from LED directory; automated page inspection timed out; fields and access rules unverified |
 | Auction sale results | https://asset.led.go.th/report | Official e-Service link labelled “รายงานผลการขายทอดตลาด” | URL verified from LED directory; automated page inspection timed out; result fields and access rules unverified |
 | LED Open Data catalog | https://opendata.led.go.th/dataset/ | 43 published datasets; CKAN API v3 root responds | Catalog/API root verified; dataset-specific API action and CSV ingestion still need end-to-end test |
-| Auction announcement statistics | https://opendata.led.go.th/dataset/led_it_0002 | Counts of first-auction announcements by asset type; CSV resource; monthly update; last data update 1 July 2569; CC BY-NC; no access restriction | Useful for aggregate trend dashboard only; not individual auction records |
+| Auction announcement statistics | https://opendata.led.go.th/dataset/led_it_0002 | Fiscal year, month, asset type, count (Value), appraisal amount (Price); CSV; monthly update; last data update 1 July 2569; CC BY-NC; no access restriction | Useful for aggregate trend dashboard only; Value and Price are grouped statistics, not individual auction records or parcel appraisals |
+| Published CSV resource | https://opendata.led.go.th/dataset/led_it_0002/resource/a7414d95-b70a-43a7-9af6-a9f4cdc793e4 | Resource UUID a7414d95-b70a-43a7-9af6-a9f4cdc793e4; file auction-01-07-2569.csv | Metadata and dictionary readable; file body not retrieved by web inspection (cache miss); validate through Laravel smoke test or authorized manual download |
 | Auction announcement statistics (all) | https://opendata.led.go.th/dataset/ | “จำนวนประกาศขายทอดตลาด” counts auctioned properties by asset type | Aggregate statistics only; not property-level records |
 | Auction-driven asset value statistics | https://opendata.led.go.th/dataset/led_ppd_0006 | Officer-assessed values at seizure for land, buildings and condominiums; CSV; monthly; last data update 7 August 2569; CC BY-NC | Useful for macro trends only; not individual property valuation and not market transaction prices |
 | LED open-data landing page | https://www.led.go.th/std/ | Official page lists “ข้อมูลการขายทอดตลาด” and other open-data categories | Verified landing page |
@@ -33,7 +34,7 @@ The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to r
 
 1. LED's official website separately links to auction property search and auction sale-result reporting.
 2. LED's Digital Action Plan 2023–2025 describes the property-search service as nationwide public search and describes a separate auction-result reporting service. The plan identifies different legacy DBMS platforms for those systems; this is historical architecture information, not proof of current APIs or current database architecture.
-3. The two resources in the “ข้อมูลประกาศขายทอดตลาด” group are aggregate counts by asset type, not property-by-property records.
+3. The “ประกาศขายทอดตลาดนัดแรก” resource dictionary specifies Fiscal year, month, Type, Value (number of properties) and Price (appraisal value). These are aggregate measures grouped by period and asset type, not property-by-property records.
 4. The “มูลค่าการผลักดันทรัพย์สิน...ด้วยการขายทอดตลาด” resource reports aggregate officer-assessed value at seizure. It is not an appraisal value for any particular property and is not a verified sale price or current market value.
 5. The catalog identifies these statistical resources as public/open with no access restriction, but licenses them CC BY-NC. For a commercial investment platform, obtain written permission or a different license before reuse.
 6. The CKAN API v3 root responds with version 3. Dataset-specific API calls and CSV file parsing were not fully verified; do not yet mark ingestion as operational.
@@ -48,8 +49,8 @@ The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to r
 | Stable API for search/result apps | Not established | Do not assume endpoint; request official technical information |
 | Current catalog auction datasets | Two auction datasets are aggregate counts by asset type | Use for statistical context only |
 | Auction-driven asset valuation dataset | Aggregate officer-assessed value at seizure; monthly | Use for macro trends only; do not assign to individual property |
-| CKAN API v3 | Root endpoint responds with version 3 | Dataset-specific API action and resource download/parser still require end-to-end test |
-| CSV resource access | Resource links visible; content fetch failed in this inspection | Test download manually/with authorized client and validate encoding/columns |
+| CKAN API actions | package_show, resource_show and datastore_search URLs could not be inspected by the web layer | Run `php artisan led:open-data-test` in configured Laravel environment; record HTTP status and response |
+| CSV resource access | Resource metadata and data dictionary readable; CSV body fetch returned cache miss | Download manually or through authorized HTTP client; validate encoding, headers, row count and numeric fields |
 | Commercial reuse permission | CC BY-NC on the inspected auction statistics datasets | Written permission or alternative license required before commercial reuse |
 | Bulk reuse / automated collection permission | Not established | Review terms/policies and obtain written clarification if ambiguous |
 | CAPTCHA/login/rate-limit constraints | Not assessed | Respect all controls; do not bypass |
@@ -63,7 +64,8 @@ The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to r
 3. **Official clarification:** contact LED for record-level auction data availability, data dictionary, API endpoint/documentation, commercial reuse permission, refresh frequency and historical coverage.
 4. **Official e-Service second:** manually inspect representative search records and result records; record field names, identifiers, pagination behavior, document links and status transitions.
 5. **CSV/XLSX import fallback:** allow authorized users to import permitted official exports/documents; store source file, source URL, import timestamp, checksum and row-level provenance.
-6. **Only after approval:** implement a rate-limited connector using documented interfaces; never bypass CAPTCHA, authentication, access controls or rate limits.
+6. **API smoke test:** in a configured Laravel application, run `php artisan led:open-data-test` to test package_show, resource_show and datastore_search. Record results; datastore_search may be unavailable if DataStore is not enabled for this resource.
+7. **Only after approval:** implement a rate-limited connector using documented interfaces; never bypass CAPTCHA, authentication, access controls or rate limits.
 
 ## 6. Initial field mapping for discovery (not yet confirmed against live schema)
 
@@ -99,6 +101,7 @@ For each sample, compare the search listing, notice document and sale-result rec
 
 Phase 1 is complete only when:
 - current dataset/API documentation and license are reviewed;
+- the Laravel API smoke test confirms package/resource metadata and whether DataStore is enabled;
 - access and commercial reuse conditions are documented;
 - actual field dictionary and update frequency are verified;
 - search-to-result record linkage is demonstrated with sample records;
