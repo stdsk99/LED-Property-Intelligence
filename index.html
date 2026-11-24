@@ -16,7 +16,7 @@ h1{font-size:clamp(30px,5vw,52px);line-height:1.1;margin:42px 0 12px;max-width:7
 <header class="top"><div class="brand">⚖️ LED Property Intelligence</div><span class="pill">PROJECT PREVIEW · v1.0</span></header>
 <h1>ค้นหาทรัพย์ประมูล<br>วิเคราะห์โอกาสลงทุน</h1>
 <p class="lead">แพลตฟอร์มรวบรวมข้อมูลทรัพย์ขายทอดตลาดทั่วประเทศไทย เปรียบเทียบราคาประเมินและข้อมูลตลาด พร้อมวิเคราะห์การลงทุนทั้งซื้อขายต่อและปล่อยเช่า</p>
-<div class="actions"><a class="btn" href="https://github.com/stdsk99/LED-Property-Intelligence">ดู Source Code บน GitHub</a><a class="btn secondary" href="https://github.com/stdsk99/LED-Property-Intelligence/tree/main/docs">อ่านเอกสารระบบ</a></div>
+<div class="actions"><a class="btn" href="https://github.com/stdsk99/LED-Property-Intelligence/tree/main/docs">อ่านเอกสารระบบ</a></div>
 <div class="notice"><strong>หมายเหตุ:</strong> นี่คือหน้าแสดงตัวอย่างโครงการแบบ Static บน GitHub Pages ยังไม่ได้เชื่อมต่อฐานข้อมูลหรือดึงข้อมูลจริงจากกรมบังคับคดี ตัวเลขด้านล่างจึงแสดงเป็นสถานะรอเชื่อมต่อ ไม่ใช่สถิติจริง</div>
 <section class="grid">
 <div class="card"><div class="label">ทรัพย์ในฐานข้อมูล</div><div class="value">—</div><div class="sub">รอเชื่อมต่อ Data Collector</div></div>
@@ -24,6 +24,14 @@ h1{font-size:clamp(30px,5vw,52px);line-height:1.1;margin:42px 0 12px;max-width:7
 <div class="card"><div class="label">ทรัพย์ต่ำกว่าตลาด</div><div class="value">—</div><div class="sub">รอ Market Valuation</div></div>
 <div class="card"><div class="label">ผลวิเคราะห์การลงทุน</div><div class="value">—</div><div class="sub">Resale · Rental</div></div>
 </section>
+<section class="section"><h2>แผนดำเนินการต่อไป</h2><div class="features">
+<article class="card feature"><h3>Phase 1 · ตรวจสอบแหล่งข้อมูล</h3><p>ตรวจสอบช่องทางข้อมูลทรัพย์จากกรมบังคับคดี เงื่อนไขการเข้าถึง ฟิลด์ข้อมูล และทดสอบชุดข้อมูลตัวอย่างก่อนสร้างตัวดึงข้อมูล</p><p><strong>ผลลัพธ์:</strong> Source Assessment และ Data Mapping</p></article>
+<article class="card feature"><h3>Phase 2 · Laravel Foundation</h3><p>สร้าง Laravel Application จริง เชื่อม MySQL จัดทำ Migrations, Authentication, Organization และ Role-based Access Control</p><p><strong>ผลลัพธ์:</strong> ระบบสมาชิกและฐานข้อมูลพร้อมใช้งาน</p></article>
+<article class="card feature"><h3>Phase 3 · Data Import & Registry</h3><p>พัฒนานำเข้า CSV/XLSX, ตรวจข้อมูลซ้ำ, เก็บประวัติแหล่งข้อมูล และจัดการทะเบียนทรัพย์กับนัดขาย</p><p><strong>ผลลัพธ์:</strong> ฐานข้อมูลทรัพย์ที่ตรวจสอบย้อนกลับได้</p></article>
+<article class="card feature"><h3>Phase 4 · Search & Dashboard</h3><p>พัฒนาค้นหาทั่วประเทศ ตัวกรอง รายละเอียดทรัพย์ แผนที่ และภาพรวมสถิติ</p><p><strong>ผลลัพธ์:</strong> MVP สำหรับค้นหาและติดตามทรัพย์</p></article>
+<article class="card feature"><h3>Phase 5 · Market Valuation</h3><p>รวมราคาประเมินราชการและข้อมูลประกาศตลาด สร้าง Comparable Engine พร้อมช่วงราคาและระดับความเชื่อมั่น</p><p><strong>ผลลัพธ์:</strong> ระบบเปรียบเทียบมูลค่าทรัพย์</p></article>
+<article class="card feature"><h3>Phase 6 · Investment & Release</h3><p>คำนวณซื้อขายต่อและปล่อยเช่า เพิ่ม Watchlist, Alerts, รายงาน ทดสอบความปลอดภัยและเตรียมติดตั้ง Production</p><p><strong>ผลลัพธ์:</strong> ระบบวิเคราะห์การลงทุนรุ่นแรก</p></article>
+</div><div class="notice">ลำดับสำคัญที่สุดคือ Phase 1: ต้องยืนยันแหล่งข้อมูลและสิทธิ์การเข้าถึงก่อนพัฒนา Collector อัตโนมัติ หากยังไม่มีช่องทางที่ได้รับอนุญาต จะใช้การนำเข้าไฟล์เป็นทางเลือกเริ่มต้น</div></section>
 <section class="section"><h2>โมดูลหลัก</h2><div class="features">
 <article class="card feature"><h3>01 · Property Search</h3><p>ค้นหาทรัพย์ทุกประเภท กรองตามจังหวัด ทำเล ราคา เนื้อที่ และวันขายทอดตลาด</p></article>
 <article class="card feature"><h3>02 · Market Valuation</h3><p>แยกราคาประเมินราชการ ราคาประกาศขาย และราคาซื้อขายจริง พร้อมระดับความเชื่อมั่น</p></article>
