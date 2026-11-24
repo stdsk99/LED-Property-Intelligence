@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\\Support\\Facades\\Route;
-use App\\Http\\Controllers\\Api\\HealthController;
-use App\\Http\\Controllers\\Api\\PropertyController;
-use App\\Http\\Controllers\\Api\\DashboardController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\PropertyController;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class);
