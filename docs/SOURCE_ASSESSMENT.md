@@ -1,5 +1,5 @@
 # Source Assessment — LED Property Intelligence
-**Assessment version:** 0.2  
+**Assessment version:** 0.3  
 **Assessment date:** 2026-11-24  
 **Status:** Preliminary desk assessment; live record-level extraction and permission checks remain pending.
 
@@ -7,7 +7,11 @@
 
 The Department of Legal Execution (LED) exposes distinct public-facing services for (1) searching properties announced for auction, (2) viewing auction-sale results, and (3) open data. The public e-Service directory confirms the first two services. The open-data catalog contains auction-related datasets, but the currently surfaced datasets are aggregate statistics (counts by asset type), not a property-by-property auction inventory.
 
-The legacy LED open-data metadata page for the record-level dataset “ข้อมูลการขายทอดตลาด” describes public auction-property records, CSV/JSON formats and daily update frequency, but also specifies **MOU access conditions** and a **Creative Commons Non-Commercial** license. This is a material restriction: do not use that dataset for a commercial investment product unless LED confirms the applicable access and reuse terms in writing. The metadata page also reports a last data update of 28/1/2565, so freshness must be revalidated.
+A direct inspection of the current catalog shows 43 published datasets and an accessible CKAN API v3 root (the API link returns version 3). However, the two datasets in the “ข้อมูลประกาศขายทอดตลาด” group are aggregate statistics only: “ประกาศขายทอดตลาดนัดแรก” and “จำนวนประกาศขายทอดตลาด” count properties by asset type. They are not property-level listings and cannot populate the property registry. Their metadata identifies them as public/open data with no access restriction, but the license is **Creative Commons Attribution Non-Commercial (CC BY-NC)**. This does not authorize commercial reuse by default. The first-auction dataset reports monthly update frequency and last data update 1 July 2569 (2026); its page was updated 3 August 2569.
+
+A separate dataset, “มูลค่าการผลักดันทรัพย์สินออกจากกระบวนการบังคับคดีด้วยการขายทอดตลาด”, contains official officer-assessed values at seizure for land, buildings and condominiums. It is also aggregate/statistical rather than per-property valuation, is updated monthly, and its metadata reports last data update 7 August 2569 (2026). It is potentially useful for macro-level trend analysis, but **must not be treated as an individual property's appraisal or current market price**. It also carries a CC BY-NC license.
+
+The catalog links to a CKAN API v3 endpoint. The root endpoint was verified to respond with version 3, but a dataset-specific API action/resource download was not fully verified in this inspection. A CSV resource link was visible, but the web inspection tool could not retrieve the file contents. Therefore API-based ingestion is technically promising but not yet approved or validated end-to-end.
 
 **Implementation decision:** Do not build a production scraper or commercial connector yet. Treat aggregate Open Data as optional statistical context only. First obtain current written clarification and inspect the e-Service and dataset terms. In parallel, implement a CSV/XLSX import path with provenance and validation.
 
@@ -18,8 +22,10 @@ The legacy LED open-data metadata page for the record-level dataset “ข้อ
 | LED official website / e-Service directory | https://www.led.go.th/th/ | Official directory links to auction-property search, auction result reporting, and open data | Verified directory entry |
 | Auction property search | https://asset.led.go.th/newbidreg | Official e-Service link labelled “ค้นหาทรัพย์ประกาศขายทอดตลาด” | URL verified from LED directory; automated page inspection timed out; fields and access rules unverified |
 | Auction sale results | https://asset.led.go.th/report | Official e-Service link labelled “รายงานผลการขายทอดตลาด” | URL verified from LED directory; automated page inspection timed out; result fields and access rules unverified |
-| LED open-data metadata: auction sale records | https://www.led.go.th/std/details/bid.asp | Metadata describes record-level auction-property data, CSV/JSON, daily frequency, MOU access and non-commercial license | Metadata surfaced; last-updated date shown as 28/1/2565; current resource availability and current terms require confirmation |
-| LED Open Data catalog | https://opendata.led.go.th/dataset/ | Catalog includes “จำนวนประกาศขายทอดตลาด” and “ประกาศขายทอดตลาดนัดแรก” | These surfaced resources are aggregate counts by asset type, not individual property records |
+| LED Open Data catalog | https://opendata.led.go.th/dataset/ | 43 published datasets; CKAN API v3 root responds | Catalog/API root verified; dataset-specific API action and CSV ingestion still need end-to-end test |
+| Auction announcement statistics | https://opendata.led.go.th/dataset/led_it_0002 | Counts of first-auction announcements by asset type; CSV resource; monthly update; last data update 1 July 2569; CC BY-NC; no access restriction | Useful for aggregate trend dashboard only; not individual auction records |
+| Auction announcement statistics (all) | https://opendata.led.go.th/dataset/ | “จำนวนประกาศขายทอดตลาด” counts auctioned properties by asset type | Aggregate statistics only; not property-level records |
+| Auction-driven asset value statistics | https://opendata.led.go.th/dataset/led_ppd_0006 | Officer-assessed values at seizure for land, buildings and condominiums; CSV; monthly; last data update 7 August 2569; CC BY-NC | Useful for macro trends only; not individual property valuation and not market transaction prices |
 | LED open-data landing page | https://www.led.go.th/std/ | Official page lists “ข้อมูลการขายทอดตลาด” and other open-data categories | Verified landing page |
 | Auction live broadcast | https://live.led.go.th/ | Official live auction service; lists offices and live status | Supplementary operational context only; not a substitute for structured auction records |
 
@@ -27,9 +33,11 @@ The legacy LED open-data metadata page for the record-level dataset “ข้อ
 
 1. LED's official website separately links to auction property search and auction sale-result reporting.
 2. LED's Digital Action Plan 2023–2025 describes the property-search service as nationwide public search and describes a separate auction-result reporting service. The plan identifies different legacy DBMS platforms for those systems; this is historical architecture information, not proof of current APIs or current database architecture.
-3. The currently surfaced Open Data catalog resources “จำนวนประกาศขายทอดตลาด” and “ประกาศขายทอดตลาดนัดแรก” describe the number of properties announced for auction, classified by asset type. They are aggregate statistics and are not sufficient to populate a searchable property registry.
-4. The legacy metadata page for “ข้อมูลการขายทอดตลาด” describes record-level auction-property data, CSV/JSON formats and daily update frequency, but states MOU access conditions and a Creative Commons Non-Commercial license. It reports last data update 28/1/2565. This must be treated as restricted/stale until LED confirms otherwise.
-5. LED regulations/guidance describe auction notices as containing key property and sale information (for example, asset type, description, size/location, sale date/time/place, conditions and encumbrances). LED-PI should preserve the original notice/document as source evidence where legally and technically permitted.
+3. The two resources in the “ข้อมูลประกาศขายทอดตลาด” group are aggregate counts by asset type, not property-by-property records.
+4. The “มูลค่าการผลักดันทรัพย์สิน...ด้วยการขายทอดตลาด” resource reports aggregate officer-assessed value at seizure. It is not an appraisal value for any particular property and is not a verified sale price or current market value.
+5. The catalog identifies these statistical resources as public/open with no access restriction, but licenses them CC BY-NC. For a commercial investment platform, obtain written permission or a different license before reuse.
+6. The CKAN API v3 root responds with version 3. Dataset-specific API calls and CSV file parsing were not fully verified; do not yet mark ingestion as operational.
+7. LED regulations/guidance describe auction notices as containing key property and sale information (for example, asset type, description, size/location, sale date/time/place, conditions and encumbrances). LED-PI should preserve the original notice/document as source evidence where legally and technically permitted.
 
 ## 4. Access and compliance status
 
@@ -38,10 +46,11 @@ The legacy LED open-data metadata page for the record-level dataset “ข้อ
 | Official source ownership | Confirmed for listed LED domains/pages | Retain source URL and retrieval timestamp |
 | Public user access to search/result apps | Service links are public; automated page inspection timed out | Manual browser verification and sample record review |
 | Stable API for search/result apps | Not established | Do not assume endpoint; request official technical information |
-| Record-level open-data dataset | Legacy metadata exists; MOU condition and non-commercial license stated; freshness questionable | Obtain current dataset file/schema and written confirmation of terms |
-| Current catalog auction datasets | Aggregate counts by asset type | Use only for statistical context unless another record-level resource is verified |
-| Open-data API | Catalog advertises API guidance | Inspect API guide and verify the specific resource is accessible under its license |
-| Commercial reuse permission | Not established; legacy record-level metadata says non-commercial | Written clarification required before commercial use |
+| Current catalog auction datasets | Two auction datasets are aggregate counts by asset type | Use for statistical context only |
+| Auction-driven asset valuation dataset | Aggregate officer-assessed value at seizure; monthly | Use for macro trends only; do not assign to individual property |
+| CKAN API v3 | Root endpoint responds with version 3 | Dataset-specific API action and resource download/parser still require end-to-end test |
+| CSV resource access | Resource links visible; content fetch failed in this inspection | Test download manually/with authorized client and validate encoding/columns |
+| Commercial reuse permission | CC BY-NC on the inspected auction statistics datasets | Written permission or alternative license required before commercial reuse |
 | Bulk reuse / automated collection permission | Not established | Review terms/policies and obtain written clarification if ambiguous |
 | CAPTCHA/login/rate-limit constraints | Not assessed | Respect all controls; do not bypass |
 | Personal/sensitive data exposure | Not assessed at field level | Minimize collection; exclude unnecessary personal data |
@@ -49,11 +58,12 @@ The legacy LED open-data metadata page for the record-level dataset “ข้อ
 
 ## 5. Proposed data acquisition order
 
-1. **Official clarification first:** contact LED for current record-level dataset availability, data dictionary, API endpoint/documentation, MOU process, commercial reuse permission, refresh frequency and historical coverage.
-2. **Official e-Service second:** manually inspect representative search records and result records; record field names, identifiers, pagination behavior, document links and status transitions.
-3. **Aggregate Open Data:** use aggregate count datasets only for macro-level trends and dashboard context; do not use them as property-level records.
-4. **CSV/XLSX import fallback:** allow authorized users to import official exports/documents; store source file, source URL, import timestamp, checksum and row-level provenance.
-5. **Only after approval:** implement a rate-limited connector using documented interfaces; never bypass CAPTCHA, authentication, access controls or rate limits.
+1. **Aggregate Open Data pilot:** ingest the two auction-count datasets and auction-driven value dataset into a separate statistical fact table, preserving date, asset category, measure, unit, source URL and license metadata. Do not merge them into property records.
+2. **API validation:** test CKAN package_show, package_search, resource_show and datastore_search for the exact dataset IDs; confirm resource URLs, CSV encoding, schema and update behavior. Keep API calls read-only and rate-limited.
+3. **Official clarification:** contact LED for record-level auction data availability, data dictionary, API endpoint/documentation, commercial reuse permission, refresh frequency and historical coverage.
+4. **Official e-Service second:** manually inspect representative search records and result records; record field names, identifiers, pagination behavior, document links and status transitions.
+5. **CSV/XLSX import fallback:** allow authorized users to import permitted official exports/documents; store source file, source URL, import timestamp, checksum and row-level provenance.
+6. **Only after approval:** implement a rate-limited connector using documented interfaces; never bypass CAPTCHA, authentication, access controls or rate limits.
 
 ## 6. Initial field mapping for discovery (not yet confirmed against live schema)
 
