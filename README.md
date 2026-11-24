@@ -23,8 +23,9 @@
 - `docs/TECHNICAL_SPECIFICATION.md` — system requirements and architecture
 - `docs/DEVELOPMENT_BACKLOG.md` — prioritized delivery backlog
 - `docs/SOURCE_ASSESSMENT.md` — preliminary official-source assessment and Phase 1 validation gates
+- `docs/OPEN_DATA_CONNECTOR.md` — CKAN API smoke test, CSV import workflow, data model and licensing guardrails
 - `database/schema.sql` — logical MySQL starter schema
-- `laravel-starter/` — initial Laravel integration examples, including `LedOpenDataClient` and the `led:open-data-test` smoke-test command
+- `laravel-starter/` — Laravel integration examples: CKAN API client, API smoke test, CSV importer, import command and migration
 
 ## Create the Laravel application
 Requirements: PHP 8.3+, Composer, MySQL 8+, Node.js LTS.
