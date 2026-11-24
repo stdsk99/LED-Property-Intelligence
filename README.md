@@ -5,6 +5,15 @@
 ## Project status
 **Baseline v1.0 — specification and starter artifacts.** This repository is not yet a complete, deployable Laravel application. The Laravel application must be created with Composer and the starter files integrated and tested.
 
+## Current deployment architecture
+- GitHub Pages: static HTML/CSS/JavaScript frontend
+- Supabase: Auth + PostgreSQL + Row Level Security for shared workspaces
+- Setup guide: [GitHub Pages + Supabase Cloud](docs/GITHUB_PAGES_CLOUD_SETUP.md)
+- Database bootstrap: [supabase/schema.sql](supabase/schema.sql)
+- Public browser settings: root `config.js` (publishable/anon key only; never add a service-role key)
+
+The browser app requires a Supabase project and the SQL bootstrap before sign-in and cloud data functions are available. GitHub Pages does not run PHP or host a database.
+
 ## Technology
 - PHP 8.3+
 - Laravel
@@ -25,7 +34,7 @@
 - `docs/SOURCE_ASSESSMENT.md` — preliminary official-source assessment and Phase 1 validation gates
 - `docs/OPEN_DATA_CONNECTOR.md` — CKAN API smoke test, CSV import workflow, data model and licensing guardrails
 - `database/schema.sql` — logical MySQL starter schema
-- `laravel-starter/` — Laravel integration examples: CKAN API client, API smoke test, CSV importer, import command and migration
+- `laravel-starter/` — optional Laravel integration examples retained for a future server-side deployment
 
 ## Create the Laravel application
 Requirements: PHP 8.3+, Composer, MySQL 8+, Node.js LTS.
