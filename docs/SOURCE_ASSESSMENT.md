@@ -1,5 +1,5 @@
 # Source Assessment — LED Property Intelligence
-**Assessment version:** 0.4  
+**Assessment version:** 0.5  
 **Assessment date:** 2026-11-24  
 **Status:** Preliminary desk assessment; live record-level extraction and permission checks remain pending.
 
@@ -11,7 +11,7 @@ A direct inspection of the current catalog shows 43 published datasets and an ac
 
 A separate dataset, “มูลค่าการผลักดันทรัพย์สินออกจากกระบวนการบังคับคดีด้วยการขายทอดตลาด”, contains official officer-assessed values at seizure for land, buildings and condominiums. It is also aggregate/statistical rather than per-property valuation, is updated monthly, and its metadata reports last data update 7 August 2569 (2026). It is potentially useful for macro-level trend analysis, but **must not be treated as an individual property's appraisal or current market price**. It also carries a CC BY-NC license.
 
-The catalog advertises access through an API guide. The dataset page identifies package name `led_it_0002`; its CSV resource page identifies resource UUID `a7414d95-b70a-43a7-9af6-a9f4cdc793e4`. The published CSV URL is https://opendata.led.go.th/dataset/led_it_0002/resource/a7414d95-b70a-43a7-9af6-a9f4cdc793e4/download/auction-01-07-2569.csv. The browser inspection could read the resource metadata and data dictionary but could not retrieve the CSV body (cache miss). Direct API action URLs (package_show, resource_show and datastore_search) were not readable through the web inspection layer. This is an inspection limitation, not proof that the server API is down. A Laravel smoke-test command has therefore been added to the starter code; it must be run in a configured Laravel environment to establish actual HTTP/API behavior.
+The catalog advertises access through an API guide. The dataset page identifies package name `led_it_0002`; its CSV resource page identifies resource UUID `a7414d95-b70a-43a7-9af6-a9f4cdc793e4`. The published CSV URL is https://opendata.led.go.th/dataset/led_it_0002/resource/a7414d95-b70a-43a7-9af6-a9f4cdc793e4/download/auction-01-07-2569.csv. The browser inspection could read the resource metadata and data dictionary but could not retrieve the CSV body (cache miss). Direct API action URLs (package_show, resource_show and datastore_search) were not readable through the web inspection layer. This is an inspection limitation, not proof that the server API is down. A Laravel smoke-test command, a provenance-preserving CSV importer, and a dedicated aggregate-data table migration have been added to the starter code. These are implementation artifacts only; they have not yet been executed in a configured Laravel environment.
 
 **Implementation decision:** Do not build a production scraper or commercial connector yet. Treat aggregate Open Data as optional statistical context only. First obtain current written clarification and inspect the e-Service and dataset terms. In parallel, implement a CSV/XLSX import path with provenance and validation.
 
@@ -50,7 +50,8 @@ The catalog advertises access through an API guide. The dataset page identifies 
 | Current catalog auction datasets | Two auction datasets are aggregate counts by asset type | Use for statistical context only |
 | Auction-driven asset valuation dataset | Aggregate officer-assessed value at seizure; monthly | Use for macro trends only; do not assign to individual property |
 | CKAN API actions | package_show, resource_show and datastore_search URLs could not be inspected by the web layer | Run `php artisan led:open-data-test` in configured Laravel environment; record HTTP status and response |
-| CSV resource access | Resource metadata and data dictionary readable; CSV body fetch returned cache miss | Download manually or through authorized HTTP client; validate encoding, headers, row count and numeric fields |
+| CSV resource access | Resource metadata and data dictionary readable; direct CSV body retrieval failed in the web inspection layer | Use the new local CSV importer after authorized download; validate encoding, headers, row count and numeric fields |
+| Laravel CSV ingestion scaffold | Import service, Artisan command and separate raw/statistics table migration committed | Not runtime-tested; run migration and import against a downloaded sample in configured Laravel before production |
 | Commercial reuse permission | CC BY-NC on the inspected auction statistics datasets | Written permission or alternative license required before commercial reuse |
 | Bulk reuse / automated collection permission | Not established | Review terms/policies and obtain written clarification if ambiguous |
 | CAPTCHA/login/rate-limit constraints | Not assessed | Respect all controls; do not bypass |
@@ -63,7 +64,7 @@ The catalog advertises access through an API guide. The dataset page identifies 
 2. **API validation:** test CKAN package_show, package_search, resource_show and datastore_search for the exact dataset IDs; confirm resource URLs, CSV encoding, schema and update behavior. Keep API calls read-only and rate-limited.
 3. **Official clarification:** contact LED for record-level auction data availability, data dictionary, API endpoint/documentation, commercial reuse permission, refresh frequency and historical coverage.
 4. **Official e-Service second:** manually inspect representative search records and result records; record field names, identifiers, pagination behavior, document links and status transitions.
-5. **CSV/XLSX import fallback:** allow authorized users to import permitted official exports/documents; store source file, source URL, import timestamp, checksum and row-level provenance.
+5. **CSV import fallback:** an initial Laravel CSV importer and dedicated led_open_data_rows migration are now in the repository. The importer stores raw row JSON, computes a row hash and performs an idempotent upsert. It still requires a downloaded file and validation of exact CSV headers, delimiter, encoding, fiscal-year/month conventions and Price units.
 6. **API smoke test:** in a configured Laravel application, run `php artisan led:open-data-test` to test package_show, resource_show and datastore_search. Record results; datastore_search may be unavailable if DataStore is not enabled for this resource.
 7. **Only after approval:** implement a rate-limited connector using documented interfaces; never bypass CAPTCHA, authentication, access controls or rate limits.
 
@@ -102,6 +103,7 @@ For each sample, compare the search listing, notice document and sale-result rec
 Phase 1 is complete only when:
 - current dataset/API documentation and license are reviewed;
 - the Laravel API smoke test confirms package/resource metadata and whether DataStore is enabled;
+- the CSV importer passes tests against a verified source sample and migration runs successfully;
 - access and commercial reuse conditions are documented;
 - actual field dictionary and update frequency are verified;
 - search-to-result record linkage is demonstrated with sample records;
