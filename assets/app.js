@@ -47,9 +47,12 @@ function renderProperties(){
  $("provinceFilter").innerHTML='<option value="">ทุกจังหวัด</option>'+provinces.map(p=>`<option value="${safe(p)}">${safe(p)}</option>`).join("");$("provinceFilter").value=previous;
 }
 async function renderTeam(){
- const {data,error}=await supabase.from("organization_members").select("user_id,role,created_at,profiles(email)").eq("organization_id",activeOrg.organization_id);
+ const {data,error}=await supabase.from("organization_members").select("user_id,role,created_at").eq("organization_id",activeOrg.organization_id);
  if(error){$("teamList").innerHTML='<div class="empty">ไม่สามารถโหลดสมาชิกได้</div>';return}
- $("teamList").innerHTML=(data||[]).map(m=>`<div class="team-member"><span>${safe(m.profiles?.email||"สมาชิก")}</span><small>${safe(m.role)}</small></div>`).join("")||'<div class="empty">ยังไม่มีสมาชิก</div>';
+ const ids=(data||[]).map(m=>m.user_id);
+ const {data:profiles}=ids.length?await supabase.from("profiles").select("id,email").in("id",ids):{data:[]};
+ const emails=new Map((profiles||[]).map(p=>[p.id,p.email]));
+ $("teamList").innerHTML=(data||[]).map(m=>'<div class="team-member"><span>'+safe(emails.get(m.user_id)||"สมาชิก")+'</span><small>'+safe(m.role)+'</small></div>').join("")||'<div class="empty">ยังไม่มีสมาชิก</div>';
 }
 function switchView(name){
  currentView=name;document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));$(name+"View").classList.remove("hidden");
