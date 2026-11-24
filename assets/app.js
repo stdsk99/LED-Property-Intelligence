@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const config = window.LEDPI_CONFIG || {};
-const configured = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(config.SUPABASE_URL || "") && (config.SUPABASE_ANON_KEY || "").length > 30 && !String(config.SUPABASE_ANON_KEY).includes("YOUR_");
+const configured = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(config.SUPABASE_URL || "") && (config.SUPABASE_PUBLISHABLE_KEY || "").length > 30 && !String(config.SUPABASE_PUBLISHABLE_KEY).includes("YOUR_");
 const $ = (id) => document.getElementById(id);
 const money = (n) => new Intl.NumberFormat("th-TH",{style:"currency",currency:"THB",maximumFractionDigits:0}).format(Number(n)||0);
 const safe = (s) => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -84,7 +84,7 @@ function exportCsv(){const cols=["asset_code","title","asset_type","province","d
 function calculate(){const val=id=>Math.max(0,Number($(id).value)||0),cost=val("bid")+val("transfer")+val("renovation")+val("holding")+val("selling"),profit=val("resale")-cost; $("netProfit").textContent=money(profit);$("netProfit").style.color=profit>=0?"#176b56":"#a13d2c";$("totalCost").textContent=money(cost);$("roi").textContent=cost?((profit/cost)*100).toFixed(2)+"%":"—";$("breakEven").textContent=money(cost)}
 async function init(){
  if(!configured){$("boot").classList.add("hidden");showAuth();$("authView").querySelector(".auth-card").insertAdjacentHTML("afterbegin",'<div class="notice error">ยังไม่ได้ตั้งค่า Supabase กรุณากำหนด URL และ anon key ในไฟล์ config.js ก่อน</div>');$("authForm").querySelector("button").disabled=true;return}
- supabase=createClient(config.SUPABASE_URL,config.SUPABASE_ANON_KEY);
+ supabase=createClient(config.SUPABASE_URL,config.SUPABASE_PUBLISHABLE_KEY);
  const {data}=await supabase.auth.getSession();session=data.session;
  supabase.auth.onAuthStateChange((_event,newSession)=>{session=newSession;if(!newSession)showAuth();});
  if(!session){showAuth();return}
