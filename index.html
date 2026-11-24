@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LED Property Intelligence</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d30;--line:#26354c;--muted:#9aabc2;--text:#eef4ff;--blue:#66a6ff;--green:#48d6a0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0,#19345a 0,transparent 34%),var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:30px 22px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.brand{font-weight:750;font-size:20px;letter-spacing:.2px}.pill{border:1px solid #326a5a;color:#83ebbd;background:#12352f;padding:6px 12px;border-radius:999px;font-size:12px}
+h1{font-size:clamp(30px,5vw,52px);line-height:1.1;margin:42px 0 12px;max-width:780px}.lead{color:var(--muted);max-width:760px;font-size:17px}.actions{display:flex;gap:12px;margin:24px 0 30px;flex-wrap:wrap}a.btn{color:#071525;background:var(--blue);padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:700}a.secondary{background:#1a2940;color:var(--text);border:1px solid var(--line)}
+.notice{border:1px solid #725b2a;background:#302716;color:#f5d99a;padding:14px 16px;border-radius:12px;margin:24px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.card{background:linear-gradient(145deg,#17243a,#111b2c);border:1px solid var(--line);border-radius:16px;padding:18px}.label{color:var(--muted);font-size:13px}.value{font-size:29px;font-weight:750;margin:6px 0}.sub{color:var(--muted);font-size:12px}.section{margin-top:34px}.section h2{font-size:21px}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature h3{margin:4px 0 8px}.feature p{color:var(--muted);margin:0}.foot{border-top:1px solid var(--line);margin-top:42px;padding-top:18px;color:var(--muted);font-size:13px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.features{grid-template-columns:1fr}}@media(max-width:430px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="top"><div class="brand">⚖️ LED Property Intelligence</div><span class="pill">PROJECT PREVIEW · v1.0</span></header>
+<h1>ค้นหาทรัพย์ประมูล<br>วิเคราะห์โอกาสลงทุน</h1>
+<p class="lead">แพลตฟอร์มรวบรวมข้อมูลทรัพย์ขายทอดตลาดทั่วประเทศไทย เปรียบเทียบราคาประเมินและข้อมูลตลาด พร้อมวิเคราะห์การลงทุนทั้งซื้อขายต่อและปล่อยเช่า</p>
+<div class="actions"><a class="btn" href="https://github.com/stdsk99/LED-Property-Intelligence">ดู Source Code บน GitHub</a><a class="btn secondary" href="https://github.com/stdsk99/LED-Property-Intelligence/tree/main/docs">อ่านเอกสารระบบ</a></div>
+<div class="notice"><strong>หมายเหตุ:</strong> นี่คือหน้าแสดงตัวอย่างโครงการแบบ Static บน GitHub Pages ยังไม่ได้เชื่อมต่อฐานข้อมูลหรือดึงข้อมูลจริงจากกรมบังคับคดี ตัวเลขด้านล่างจึงแสดงเป็นสถานะรอเชื่อมต่อ ไม่ใช่สถิติจริง</div>
+<section class="grid">
+<div class="card"><div class="label">ทรัพย์ในฐานข้อมูล</div><div class="value">—</div><div class="sub">รอเชื่อมต่อ Data Collector</div></div>
+<div class="card"><div class="label">นัดขายทอดตลาด</div><div class="value">—</div><div class="sub">รอข้อมูลประกาศจริง</div></div>
+<div class="card"><div class="label">ทรัพย์ต่ำกว่าตลาด</div><div class="value">—</div><div class="sub">รอ Market Valuation</div></div>
+<div class="card"><div class="label">ผลวิเคราะห์การลงทุน</div><div class="value">—</div><div class="sub">Resale · Rental</div></div>
+</section>
+<section class="section"><h2>โมดูลหลัก</h2><div class="features">
+<article class="card feature"><h3>01 · Property Search</h3><p>ค้นหาทรัพย์ทุกประเภท กรองตามจังหวัด ทำเล ราคา เนื้อที่ และวันขายทอดตลาด</p></article>
+<article class="card feature"><h3>02 · Market Valuation</h3><p>แยกราคาประเมินราชการ ราคาประกาศขาย และราคาซื้อขายจริง พร้อมระดับความเชื่อมั่น</p></article>
+<article class="card feature"><h3>03 · Investment Analyzer</h3><p>คำนวณต้นทุน กำไร ROI ราคาประมูลสูงสุด และผลตอบแทนจากการปล่อยเช่า</p></article>
+<article class="card feature"><h3>04 · Geographic Intelligence</h3><p>แสดงตำแหน่งทรัพย์และข้อมูลเปรียบเทียบตามพื้นที่</p></article>
+<article class="card feature"><h3>05 · Watchlist & Alert</h3><p>ติดตามทรัพย์และแจ้งเตือนเมื่อราคา วันขาย หรือสถานะเปลี่ยนแปลง</p></article>
+<article class="card feature"><h3>06 · Multi-user Workspace</h3><p>จัดการสมาชิก บทบาท และข้อมูลวิเคราะห์แยกตามองค์กร</p></article>
+</div></section>
+<footer class="foot">LED-PI · Laravel + MySQL backend planned · GitHub Pages serves this static preview only. © 2026</footer>
+</main></body></html>
