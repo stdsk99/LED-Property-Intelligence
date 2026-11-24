@@ -5,19 +5,19 @@
 - Supabase Auth handles email/password sign-in.
 - Supabase PostgreSQL stores workspace, membership, invitation and property records.
 - PostgreSQL Row Level Security (RLS) enforces workspace boundaries.
-- The browser uses only the Supabase project URL and anon/publishable key. Never put a service_role key or database password in this repository.
+- The browser uses only the Supabase project URL and publishable key. Never put a service_role key or database password in this repository.
 
 ## 1. Create Supabase project
 1. Create a project at https://supabase.com/.
 2. Open SQL Editor and run the complete `supabase/schema.sql` script once.
-3. In Project Settings → API, copy the Project URL and anon/publishable key.
+3. In Project Settings → API, copy the Project URL and publishable key.
 4. In Authentication → URL Configuration, set Site URL to the published GitHub Pages URL, for example `https://stdsk99.github.io/LED-Property-Intelligence/`.
 5. Add that same URL to Redirect URLs. Configure email confirmation and SMTP as appropriate for the intended users.
 
 ## 2. Configure frontend
 Edit root `config.js`:
 - Replace `SUPABASE_URL` with the project URL.
-- Replace `SUPABASE_ANON_KEY` with the anon/publishable key.
+- Replace `SUPABASE_PUBLISHABLE_KEY` with the anon/publishable key.
 - Never use the `service_role` key. The anon key is public by design; security depends on RLS policies.
 
 ## 3. Enable GitHub Pages
