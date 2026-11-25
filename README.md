@@ -10,7 +10,7 @@
 - Source code: `gas/` (Apps Script project files)
 - Setup guide: `docs/GAS_GOOGLE_SHEETS_SETUP.md`
 
-The Apps Script backend currently includes spreadsheet initialization, token verification, allowlist enforcement, property listing, create/update and CSV append import. It is a development scaffold and has not yet been deployed or runtime-tested. Complete the HTML client and deployment configuration before onboarding users.
+The Apps Script backend currently includes spreadsheet initialization, token verification, allowlist enforcement, property listing, create/update and CSV append import. It is a development scaffold and has not yet been deployed or runtime-tested. A basic HTML client and property entry/listing flow are included; deployment and OAuth-origin validation remain pending.
 
 ## Important security model
 The web app executes as the deploying owner. The spreadsheet must remain private. Do not trust client-supplied email or role; every data endpoint must verify the Google ID token and allowlist. Store OAuth Client ID and allowlist in Apps Script Script Properties, not secrets in GitHub.
