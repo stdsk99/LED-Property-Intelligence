@@ -1,65 +1,27 @@
 # LED Property Intelligence (LED-PI)
 
-ระบบค้นหา วิเคราะห์ และติดตามทรัพย์ขายทอดตลาดทั่วประเทศไทย พร้อมประเมินโอกาสลงทุนทั้งการซื้อขายต่อและการปล่อยเช่า
+ระบบค้นหา วิเคราะห์ และติดตามทรัพย์ขายทอดตลาด พร้อมประเมินโอกาสลงทุนซื้อขายต่อและปล่อยเช่า
 
-## Project status
-**Baseline v1.0 — specification and starter artifacts.** This repository is not yet a complete, deployable Laravel application. The Laravel application must be created with Composer and the starter files integrated and tested.
+## Selected MVP architecture (2026-11-25)
+- Users: 5–30 named users
+- Authentication: Google Identity Services; Apps Script verifies signed ID tokens server-side and enforces an email allowlist
+- Backend and web hosting: Google Apps Script Web App
+- Database: private Google Sheets spreadsheet
+- Source code: `gas/` (Apps Script project files)
+- Setup guide: `docs/GAS_GOOGLE_SHEETS_SETUP.md`
 
-## Current deployment architecture
-- GitHub Pages: static HTML/CSS/JavaScript frontend
-- Supabase: Auth + PostgreSQL + Row Level Security for shared workspaces
-- Setup guide: [GitHub Pages + Supabase Cloud](docs/GITHUB_PAGES_CLOUD_SETUP.md)
-- Database bootstrap: [supabase/schema.sql](supabase/schema.sql)
-- Public browser settings: root `config.js` (publishable key only; never add a service-role key)
+The Apps Script backend currently includes spreadsheet initialization, token verification, allowlist enforcement, property listing, create/update and CSV append import. It is a development scaffold and has not yet been deployed or runtime-tested. Complete the HTML client and deployment configuration before onboarding users.
 
-The browser app requires a Supabase project and the SQL bootstrap before sign-in and cloud data functions are available. GitHub Pages does not run PHP or host a database.
+## Important security model
+The web app executes as the deploying owner. The spreadsheet must remain private. Do not trust client-supplied email or role; every data endpoint must verify the Google ID token and allowlist. Store OAuth Client ID and allowlist in Apps Script Script Properties, not secrets in GitHub.
 
-## Technology
-- PHP 8.3+
-- Laravel
-- MySQL 8+
-- Blade, Bootstrap 5, JavaScript
-- Leaflet / OpenStreetMap
+## Data rules
+Keep government assessed values, listing asking prices and verified transaction prices in separate fields. Never represent an asking price as a completed transaction. No official LED property-level scraper is enabled; verify source access and licensing before ingestion. CSV/XLSX import is the fallback.
 
-## Product scope
-- Nationwide property and auction discovery from approved sources
-- Official assessed values and market listing/comparable references, kept as distinct valuation bases
-- Resale and rental investment scenarios
-- Multi-user organizations, role-based access, watchlists and alerts
-- Source provenance, snapshots, import logs and audit trail
+## Retained legacy artifacts
+The prior GitHub Pages + Supabase prototype and Laravel/MySQL starter are retained for reference only. They are not the selected MVP runtime. GitHub Pages cannot execute Apps Script server functions or PHP.
 
-## Repository contents
-- `docs/TECHNICAL_SPECIFICATION.md` — system requirements and architecture
-- `docs/DEVELOPMENT_BACKLOG.md` — prioritized delivery backlog
-- `docs/SOURCE_ASSESSMENT.md` — preliminary official-source assessment and Phase 1 validation gates
-- `docs/OPEN_DATA_CONNECTOR.md` — CKAN API smoke test, CSV import workflow, data model and licensing guardrails
-- `database/schema.sql` — logical MySQL starter schema
-- `laravel-starter/` — optional Laravel integration examples retained for a future server-side deployment
-
-## Create the Laravel application
-Requirements: PHP 8.3+, Composer, MySQL 8+, Node.js LTS.
-
-```bash
-composer create-project laravel/laravel led-property-intelligence
-cd led-property-intelligence
-php artisan install:api
-```
-
-Copy the contents of `laravel-starter/` into the matching paths in the new Laravel application. Review namespaces and Laravel-version differences, then configure `.env` using `.env.example` as a reference.
-
-Do not load `database/schema.sql` and run Laravel migrations against the same database simultaneously. The recommended production approach is to convert the approved schema into Laravel migrations.
-
-## Data-source and legal gate
-No active scraper is included. Before enabling any connector for the Department of Legal Execution or market-data providers, verify terms, access permissions, permitted frequency, licensing, and personal-data obligations. CSV/XLSX import is the first supported ingestion path. Do not bypass authentication, CAPTCHA, rate limits, or technical restrictions.
-
-The preliminary source assessment found official LED links for auction-property search and auction-sale results, plus aggregate auction-statistics datasets in the Open Data catalog. One resource exposes fiscal year, month, asset type, property count and grouped appraisal value; it is not a property-level inventory. Its license is CC BY-NC. The dataset-specific API actions and CSV ingestion still require a live smoke test. See [Source Assessment](docs/SOURCE_ASSESSMENT.md). Run `php artisan led:open-data-test` after integrating the Laravel starter files to test package_show, resource_show and datastore_search.
-
-## Important valuation distinction
-Government assessed values, advertised listing prices, and verified transaction prices are separate data categories. Listing prices must never be presented as completed transaction prices. Investment outputs are decision-support estimates, not guarantees or legal opinions.
-
-## Initial API outline
-- `GET /api/v1/health`
-- `GET /api/v1/properties`
-- `GET /api/v1/dashboard/summary`
-
-Protected endpoints remain implementation scaffolds until authentication, validation, tenant policies, and tests are completed.
+## Current limitations
+- Google Apps Script quotas and execution limits apply.
+- Sheets is suitable for a small-team MVP, not a relational database or high-concurrency workload.
+- No production deployment, load test, full RBAC, rental cash-flow model, advanced resale calculator, maps, automated alerts, or active auction scraper is claimed.
