@@ -1,1 +1,33 @@
-<!doctype html><html lang="th"><head><base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LED-PI</title><?!= include("Styles"); ?><script src="https://accounts.google.com/gsi/client" async defer></script></head><body><main class="card"><h1>LED Property Intelligence</h1><p>ระบบทะเบียนทรัพย์และวิเคราะห์การลงทุน</p><section id="login"><h2>เข้าสู่ระบบด้วย Google</h2><div id="googleButton"></div></section><section id="app" class="hidden"><p id="signedIn"></p><h2>ทะเบียนทรัพย์</h2><form id="newProperty"><input name="title" placeholder="ชื่อ/รายละเอียดทรัพย์" required><input name="province" placeholder="จังหวัด"><input name="government_assessed" type="number" min="0" placeholder="ราคาประเมินราชการ"><input name="listing_asking" type="number" min="0" placeholder="ราคาประกาศขาย"><button type="submit">บันทึกทรัพย์</button></form><div id="propertyRows"></div></section></main><script>window.LEDPI_GOOGLE_CLIENT_ID=<?!= JSON.stringify(googleClientId) ?>;</script><?!= include("Client"); ?></body></html>
+<!doctype html>
+<html lang="th">
+<head>
+  <base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LED Property Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <?!= include("Styles"); ?><script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar"><div class="brand"><span class="brand-mark">LED</span><div><strong>LED Property Intelligence</strong><small>AUCTION & INVESTMENT WORKSPACE</small></div></div><div id="userArea" class="user-area hidden"><span id="signedIn"></span><button id="logoutBtn" class="button button-light">ออกจากระบบ</button></div></header>
+    <section id="login" class="login-card card"><p class="eyebrow">GOOGLE ACCOUNT ACCESS</p><h1>เข้าสู่ระบบ LED-PI</h1><p>ใช้บัญชี Google ที่ผู้ดูแลระบบเพิ่มไว้ในรายชื่อผู้มีสิทธิ์เท่านั้น</p><div id="googleButton"></div><p class="hint">ระบบตรวจสอบตัวตนและสิทธิ์ที่ฝั่งเซิร์ฟเวอร์ก่อนเข้าถึงฐานข้อมูล</p></section>
+    <section id="app" class="hidden">
+      <div class="page-heading"><div><p class="eyebrow">PROPERTY INTELLIGENCE</p><h1>ทะเบียนทรัพย์ขายทอดตลาด</h1><p>จัดเก็บข้อมูลทรัพย์และแยกฐานราคาประเมิน ราคาประกาศ และราคาซื้อขายจริง</p></div><div class="toolbar"><button id="newBtn" class="button button-primary">＋ เพิ่มทรัพย์</button><button id="csvBtn" class="button button-secondary">นำเข้า CSV</button><input id="csvFile" type="file" accept=".csv,text/csv" hidden><button id="refreshBtn" class="button button-light">↻ รีเฟรช</button></div></div>
+      <div class="stats"><article class="card stat"><span>ทรัพย์ทั้งหมด</span><strong id="total">0</strong></article><article class="card stat"><span>อยู่ระหว่างติดตาม</span><strong id="watch">0</strong></article><article class="card stat"><span>จำนวนจังหวัด</span><strong id="provinces">0</strong></article></div>
+      <section class="card table-card"><div class="table-heading"><div><h2>รายการทรัพย์</h2><small id="count">0 รายการ</small></div><input id="search" class="search" placeholder="ค้นหาชื่อทรัพย์ รหัส หรือจังหวัด"></div><div class="table-wrap"><table><thead><tr><th>ทรัพย์ / รหัส</th><th>ประเภท</th><th>ที่ตั้ง</th><th>ราคาประเมินราชการ</th><th>ราคาประกาศ</th><th>วันขาย</th><th>สถานะ</th><th></th></tr></thead><tbody id="rows"><tr><td colspan="8" class="empty">กำลังโหลดข้อมูล…</td></tr></tbody></table></div><p class="footnote">แสดงข้อมูลสูงสุด 2,000 รายการล่าสุดในหน้าจอนี้</p></section>
+    </section>
+  </main>
+  <dialog id="propertyDialog"><form id="propertyForm"><div class="dialog-heading"><div><p class="eyebrow">PROPERTY RECORD</p><h2 id="dialogTitle">เพิ่มข้อมูลทรัพย์</h2></div><button type="button" id="closeDialog" class="close-button">×</button></div><input name="property_id" type="hidden">
+    <div class="form-grid">
+      <label class="wide">ชื่อ / รายละเอียดทรัพย์ *<input name="title" required maxlength="250"></label>
+      <label>รหัสทรัพย์<input name="asset_code" maxlength="500"></label><label>ประเภททรัพย์<input name="asset_type" placeholder="ที่ดิน / บ้าน / อาคารชุด"></label>
+      <label>จังหวัด<input name="province"></label><label>อำเภอ / เขต<input name="district"></label><label>ตำบล / แขวง<input name="subdistrict"></label><label>วันขายทอดตลาด<input name="auction_date" type="date"></label>
+      <label>เนื้อที่ (ไร่)<input name="area_rai" type="number" min="0" step="any"></label><label>เนื้อที่ (งาน)<input name="area_ngan" type="number" min="0" step="any"></label><label>เนื้อที่ (ตร.ว.)<input name="area_sq_wah" type="number" min="0" step="any"></label>
+      <label>ราคาประเมินราชการ (บาท)<input name="government_assessed" type="number" min="0" step="any"></label><label>ราคาประกาศขาย (บาท)<input name="listing_asking" type="number" min="0" step="any"></label><label>ราคาซื้อขายจริง (บาท)<input name="verified_transaction" type="number" min="0" step="any"></label>
+      <label>สถานะทรัพย์<select name="status"><option value="watchlist">ติดตาม</option><option value="reviewing">กำลังพิจารณา</option><option value="passed">ไม่ลงทุน</option><option value="won">ประมูลได้</option></select></label>
+      <label>สถานะการขายทอดตลาด<input name="auction_status"></label>
+      <label class="wide">ที่อยู่ / รายละเอียดพื้นที่<input name="address"></label><label class="wide">URL แหล่งข้อมูล (HTTPS)<input name="source_url" type="url"></label><label class="wide">หมายเหตุ<textarea name="notes" rows="3" maxlength="3000"></textarea></label>
+    </div><div class="dialog-actions"><button type="button" id="cancelDialog" class="button button-light">ยกเลิก</button><button type="submit" id="saveBtn" class="button button-primary">บันทึกข้อมูล</button></div>
+  </form></dialog>
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script>window.LEDPI_GOOGLE_CLIENT_ID=<?!= JSON.stringify(googleClientId) ?>;</script><?!= include("Client"); ?>
+</body></html>
