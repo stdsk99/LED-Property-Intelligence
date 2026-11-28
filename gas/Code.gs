@@ -50,7 +50,7 @@ function verifyUser_(token){
 }
 function safeSheetText_(value,maxLength){
   let s=String(value==null?"":value).trim().slice(0,maxLength||500);
-  if(/^[=+@\\t\\r]/.test(s))s="'"+s;
+  if(/^[=+@\\-\\t\\r]/.test(s))s="'"+s;
   return s;
 }
 function db_(){const id=PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");if(!id)throw new Error("ยังไม่ได้ initialize ฐานข้อมูล");return SpreadsheetApp.openById(id);}
@@ -63,15 +63,18 @@ function listPropertiesInternal_(){
 function saveProperty(token,input){
   const user=verifyUser_(token);if(!input||typeof input!=="object")throw new Error("ข้อมูลทรัพย์ไม่ถูกต้อง");
   const title=String(input.title||"").trim();if(!title||title.length>250)throw new Error("กรุณาระบุชื่อทรัพย์ (ไม่เกิน 250 ตัวอักษร)");
-  const record={title:title},numeric=["area_rai","area_ngan","area_sq_wah","government_assessed","listing_asking","verified_transaction"];
+  const record={title:safeSheetText_(title,250)},numeric=["area_rai","area_ngan","area_sq_wah","government_assessed","listing_asking","verified_transaction"];
   numeric.forEach(k=>{const v=input[k];if(v===""||v==null)record[k]="";else{const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error("ค่าตัวเลขไม่ถูกต้อง: "+k);record[k]=n;}});
   ["asset_code","asset_type","province","district","subdistrict","address","auction_date","auction_status","status","source_url","notes"].forEach(k=>record[k]=safeSheetText_(input[k],k==="notes"?3000:500));
   record.status=record.status||"watchlist";if(!["watchlist","reviewing","passed","won"].includes(record.status))throw new Error("สถานะทรัพย์ไม่ถูกต้อง");
   if(record.source_url&&!/^https:\/\//i.test(record.source_url))throw new Error("Source URL ต้องเป็น HTTPS");
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try{
-    const sh=db_().getSheetByName("Properties"),now=new Date(),id=String(input.property_id||Utilities.getUuid()),data=sh.getDataRange().getValues(),h=data[0];let rowNo=-1;
+    const sh=db_().getSheetByName("Properties"),now=new Date(),requestedId=String(input.property_id||""),data=sh.getDataRange().getValues(),h=data[0];
+    if(requestedId&&!/^[0-9a-f-]{36}$/i.test(requestedId))throw new Error("รหัสทรัพย์ไม่ถูกต้อง");
+    const id=requestedId||Utilities.getUuid();let rowNo=-1;
     for(let i=1;i<data.length;i++)if(String(data[i][0])===id){rowNo=i+1;break;}
+    if(requestedId&&rowNo<0)throw new Error("ไม่พบทรัพย์ที่ต้องการแก้ไข");
     const old=rowNo>0?data[rowNo-1]:null;
     const row=h.map(k=>k==="property_id"?id:k==="created_by"?(old?old[h.indexOf(k)]:user.email):k==="created_at"?(old?old[h.indexOf(k)]:now):k==="updated_at"?now:(record[k]!==undefined?record[k]:(old?old[h.indexOf(k)]:"")));
     if(rowNo>0)sh.getRange(rowNo,1,1,row.length).setValues([row]);else sh.appendRow(row);
