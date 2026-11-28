@@ -1,5 +1,7 @@
-# LED-PI Apps Script Setup
+# LED-PI — Google Apps Script + Google Sheets
 
-See docs/GAS_SETUP.md for setup. In short: copy the gas/ files into a standalone Apps Script project, set GOOGLE_OAUTH_CLIENT_ID, ALLOWED_EMAILS and ADMIN_EMAILS in Script Properties, run initializeLedPi(), then deploy as Web App executing as the owner. Keep the generated Google Sheet private. Every backend data call verifies a Google ID token and checks the email allowlist. Test approved and denied accounts before onboarding.
+This file is the short entry point for the selected MVP architecture (5–30 Google-account users). Follow the complete setup, OAuth, deployment, security and verification procedure in [GAS_SETUP.md](GAS_SETUP.md).
 
-This is a development MVP and has not been deployed or runtime-tested. Apps Script quotas apply; advanced RBAC, deduplication, maps, rental modelling and official LED scraping are not implemented.
+Runtime files are in `gas/`: `Code.gs`, `Index.html`, `Client.html`, `Styles.html`, and `appsscript.json`.
+
+The current app provides Google ID-token verification, email allowlisting, property listing/search, add/edit, CSV append import and audit events. It is a development MVP; it has not been deployed to the user's Google account or load-tested. Automated LED scraping, deduplication, rental analysis, maps and full RBAC are not included.
