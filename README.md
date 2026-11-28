@@ -8,9 +8,9 @@
 - Backend and web hosting: Google Apps Script Web App
 - Database: private Google Sheets spreadsheet
 - Source code: `gas/` (Apps Script project files)
-- Setup guide: `docs/GAS_GOOGLE_SHEETS_SETUP.md`
+- Setup guide: `docs/GAS_SETUP.md`
 
-The Apps Script backend currently includes spreadsheet initialization, token verification, allowlist enforcement, property listing, create/update and CSV append import. It is a development scaffold and has not yet been deployed or runtime-tested. A basic HTML client and property entry/listing flow are included; deployment and OAuth-origin validation remain pending.
+The Apps Script MVP includes spreadsheet initialization, Google ID-token verification, email allowlisting, property listing/search, add/edit, CSV append import and audit events. JavaScript syntax and manifest validation have passed, but the project has not been deployed to the user's Google account or runtime-tested against a live spreadsheet. OAuth origin validation remains a deployment-time check.
 
 ## Important security model
 The web app executes as the deploying owner. The spreadsheet must remain private. Do not trust client-supplied email or role; every data endpoint must verify the Google ID token and allowlist. Store OAuth Client ID and allowlist in Apps Script Script Properties, not secrets in GitHub.
@@ -24,4 +24,4 @@ The prior GitHub Pages + Supabase prototype and Laravel/MySQL starter are retain
 ## Current limitations
 - Google Apps Script quotas and execution limits apply.
 - Sheets is suitable for a small-team MVP, not a relational database or high-concurrency workload.
-- No production deployment, load test, full RBAC, rental cash-flow model, advanced resale calculator, maps, automated alerts, or active auction scraper is claimed.
+- No production deployment, live Google-account integration test, load test, full RBAC, duplicate detection, rental cash-flow model, advanced resale calculator, maps, automated alerts, or active auction scraper is claimed.
