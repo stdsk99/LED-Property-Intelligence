@@ -1,1 +1,99 @@
-<script>let idToken="",properties=[];function serverCall(n,...a){return new Promise((ok,no)=>{const r=google.script.run.withSuccessHandler(ok).withFailureHandler(no);r[n](...a);});}function draw(){const host=document.getElementById("propertyRows");host.innerHTML=properties.length?properties.map(p=>"<div class=\"card\"><b>"+String(p.title||"").replace(/[&<>]/g,"")+"</b><p>"+String(p.province||"")+" · ราคาประเมิน "+(p.government_assessed||"—")+" · ราคาประกาศ "+(p.listing_asking||"—")+"</p></div>").join(""):"<p>ยังไม่มีข้อมูลทรัพย์</p>";}function start(){if(!window.LEDPI_GOOGLE_CLIENT_ID){alert("ผู้ดูแลระบบยังไม่ได้ตั้งค่า GOOGLE_OAUTH_CLIENT_ID");return;}google.accounts.id.initialize({client_id:window.LEDPI_GOOGLE_CLIENT_ID,callback:async x=>{idToken=x.credential;try{const d=await serverCall("getBootstrap",idToken);properties=d.properties||[];document.getElementById("login").classList.add("hidden");document.getElementById("app").classList.remove("hidden");document.getElementById("signedIn").textContent="เข้าสู่ระบบ: "+d.user.email+" ("+d.user.role+")";draw();}catch(e){idToken="";alert(e.message||e);}}});google.accounts.id.renderButton(document.getElementById("googleButton"),{theme:"outline",size:"large",locale:"th"});}document.getElementById("newProperty").addEventListener("submit",async e=>{e.preventDefault();try{await serverCall("saveProperty",idToken,Object.fromEntries(new FormData(e.target).entries()));properties=await serverCall("listProperties",idToken);draw();e.target.reset();}catch(x){alert(x.message||x);}});window.addEventListener("load",()=>{const t=()=>window.google?.accounts?.id?start():setTimeout(t,300);t();});</script>
+<script>
+let idToken = "";
+let properties = [];
+const $ = id => document.getElementById(id);
+const money = value => value === "" || value == null ? "—" : new Intl.NumberFormat("th-TH",{maximumFractionDigits:0}).format(Number(value)) + " บาท";
+const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const statusLabel = value => ({watchlist:"ติดตาม",reviewing:"กำลังพิจารณา",passed:"ไม่ลงทุน",won:"ประมูลได้"}[value] || value || "—");
+function showToast(message, isError=false) {
+  $("toast").textContent = message; $("toast").classList.remove("hidden");
+  $("toast").classList.toggle("toast-error", isError);
+  window.clearTimeout(showToast.timer); showToast.timer=window.setTimeout(()=>$("toast").classList.add("hidden"),5000);
+}
+function serverCall(name,...args) {
+  return new Promise((resolve,reject)=>{
+    const runner=google.script.run.withSuccessHandler(resolve).withFailureHandler(error=>reject(new Error(error.message||String(error))));
+    runner[name](...args);
+  });
+}
+function renderProperties() {
+  const query=$("search").value.trim().toLocaleLowerCase("th-TH");
+  const filtered=properties.filter(p=>[p.title,p.asset_code,p.province,p.district,p.subdistrict,p.asset_type].some(v=>String(v||"").toLocaleLowerCase("th-TH").includes(query)));
+  $("total").textContent=properties.length.toLocaleString("th-TH");
+  $("watch").textContent=properties.filter(p=>p.status==="watchlist").length.toLocaleString("th-TH");
+  $("provinces").textContent=new Set(properties.map(p=>p.province).filter(Boolean)).size.toLocaleString("th-TH");
+  $("count").textContent=filtered.length.toLocaleString("th-TH")+" รายการ";
+  $("rows").innerHTML=filtered.length?filtered.map(p=>'<tr><td><strong>'+escapeHtml(p.title)+'</strong><small class="subline">'+escapeHtml(p.asset_code||"ไม่มีรหัส")+'</small></td><td>'+escapeHtml(p.asset_type||"—")+'</td><td>'+escapeHtml([p.subdistrict,p.district,p.province].filter(Boolean).join(" · ")||"—")+'</td><td>'+money(p.government_assessed)+'</td><td>'+money(p.listing_asking)+'</td><td>'+escapeHtml(p.auction_date||"—")+'</td><td><span class="status-pill status-'+escapeHtml(p.status||"unknown")+'">'+escapeHtml(statusLabel(p.status))+'</span></td><td><button type="button" class="edit-button" data-edit="'+escapeHtml(p.property_id)+'">แก้ไข</button></td></tr>').join(""):'<tr><td colspan="8" class="empty">ไม่พบข้อมูลทรัพย์</td></tr>';
+  $("rows").querySelectorAll("[data-edit]").forEach(button=>button.addEventListener("click",()=>editProperty(button.dataset.edit)));
+}
+function openPropertyDialog(record=null) {
+  $("propertyForm").reset();
+  $("dialogTitle").textContent=record?"แก้ไขข้อมูลทรัพย์":"เพิ่มข้อมูลทรัพย์";
+  if(record) Object.keys(record).forEach(key=>{const field=$("propertyForm").elements.namedItem(key);if(field)field.value=record[key]??"";});
+  $("propertyDialog").showModal();
+}
+function editProperty(id) {
+  const record=properties.find(p=>String(p.property_id)===String(id));
+  if(record)openPropertyDialog(record);
+}
+async function reloadProperties() {
+  $("refreshBtn").disabled=true;
+  try { properties=await serverCall("listProperties",idToken);renderProperties(); }
+  catch(error){showToast(error.message,true);}
+  finally{$("refreshBtn").disabled=false;}
+}
+function initializeGoogleSignIn() {
+  if(!window.LEDPI_GOOGLE_CLIENT_ID){showToast("ผู้ดูแลระบบยังไม่ได้ตั้งค่า GOOGLE_OAUTH_CLIENT_ID",true);return;}
+  google.accounts.id.initialize({
+    client_id:window.LEDPI_GOOGLE_CLIENT_ID,
+    callback:async response=>{
+      idToken=response.credential;
+      try {
+        const result=await serverCall("getBootstrap",idToken);
+        properties=result.properties||[];
+        $("login").classList.add("hidden");$("app").classList.remove("hidden");$("userArea").classList.remove("hidden");
+        $("signedIn").textContent=result.user.email+" · "+result.user.role;
+        renderProperties();
+      } catch(error) {idToken="";showToast(error.message,true);}
+    }
+  });
+  google.accounts.id.renderButton($("googleButton"),{theme:"outline",size:"large",shape:"rectangular",text:"signin_with",locale:"th"});
+}
+$("newBtn").addEventListener("click",()=>openPropertyDialog());
+$("closeDialog").addEventListener("click",()=>$("propertyDialog").close());
+$("cancelDialog").addEventListener("click",()=>$("propertyDialog").close());
+$("refreshBtn").addEventListener("click",reloadProperties);
+$("search").addEventListener("input",renderProperties);
+$("propertyForm").addEventListener("submit",async event=>{
+  event.preventDefault();const button=$("saveBtn");button.disabled=true;
+  try {
+    const input=Object.fromEntries(new FormData(event.currentTarget).entries());
+    await serverCall("saveProperty",idToken,input);
+    properties=await serverCall("listProperties",idToken);
+    $("propertyDialog").close();renderProperties();showToast("บันทึกข้อมูลทรัพย์เรียบร้อย");
+  } catch(error){showToast(error.message,true);}
+  finally{button.disabled=false;}
+});
+$("csvBtn").addEventListener("click",()=>$("csvFile").click());
+$("csvFile").addEventListener("change",async event=>{
+  const file=event.target.files[0];if(!file)return;
+  if(file.size>500000){showToast("ไฟล์ CSV ต้องมีขนาดไม่เกิน 500 KB",true);event.target.value="";return;}
+  try {
+    const text=await file.text();
+    const result=await serverCall("importCsv",idToken,text);
+    properties=await serverCall("listProperties",idToken);renderProperties();
+    showToast("นำเข้าข้อมูลสำเร็จ "+result.imported+" รายการ");
+  } catch(error){showToast(error.message,true);}
+  finally{event.target.value="";}
+});
+$("logoutBtn").addEventListener("click",()=>{
+  idToken="";properties=[];google.accounts.id.disableAutoSelect();
+  $("app").classList.add("hidden");$("userArea").classList.add("hidden");$("login").classList.remove("hidden");
+  $("googleButton").innerHTML="";
+  initializeGoogleSignIn();
+});
+window.addEventListener("load",()=>{
+  const waitForGoogle=()=>{if(window.google?.accounts?.id)initializeGoogleSignIn();else window.setTimeout(waitForGoogle,250);};
+  waitForGoogle();
+});
+</script>
