@@ -94,7 +94,7 @@ function importCsv(token,csvText){
       if(o.status&&!["watchlist","reviewing","passed","won"].includes(String(o.status)))throw new Error("CSV แถว "+(idx+2)+" มีสถานะไม่ถูกต้อง");
   if(o.source_url&&!/^https:\/\//i.test(String(o.source_url)))throw new Error("Source URL ต้องเป็น HTTPS");
       ["government_assessed","listing_asking","verified_transaction","area_rai","area_ngan","area_sq_wah"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""){const n=Number(String(o[k]).replace(/,/g,""));if(!Number.isFinite(n)||n<0)throw new Error("CSV แถว "+(idx+2)+" มีค่า "+k+" ไม่ถูกต้อง");o[k]=n;}});
-      out.push(allowed.map(k=>k==="property_id"?Utilities.getUuid():k==="created_by"?user.email:k==="created_at"||k==="updated_at"?now:k==="status"?(o[k]||"watchlist"):["title","asset_code","asset_type","province","district","subdistrict","address","auction_status","source_url","notes"].includes(k)?safeSheetText_(o[k],k==="notes"?3000:500):(o[k]||"")));
+      out.push(allowed.map(k=>k==="property_id"?Utilities.getUuid():k==="created_by"?user.email:k==="created_at"||k==="updated_at"?now:k==="status"?(o[k]||"watchlist"):["title","asset_code","asset_type","province","district","subdistrict","address","auction_date","auction_status","source_url","notes"].includes(k)?safeSheetText_(o[k],k==="notes"?3000:500):(o[k]||"")));
     });
     if(!out.length)throw new Error("ไม่พบแถวข้อมูลที่นำเข้าได้");if(sh.getLastRow()+out.length>5001)throw new Error("MVP จำกัดทะเบียนทรัพย์ 5,000 รายการ");
     sh.getRange(sh.getLastRow()+1,1,out.length,allowed.length).setValues(out);audit_(user.email,"import_csv","property",String(out.length),{rows:out.length});return {imported:out.length};
