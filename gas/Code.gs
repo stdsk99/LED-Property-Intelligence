@@ -36,15 +36,22 @@ function verifyUser_(token){
     if(res.getResponseCode()!==200)throw new Error("Google token ไม่ถูกต้องหรือหมดอายุ กรุณาเข้าสู่ระบบใหม่");
     const claims=JSON.parse(res.getContentText());
     if(claims.aud!==clientId||claims.email_verified!=="true"||!claims.email)throw new Error("ไม่สามารถยืนยันบัญชี Google นี้ได้");
-    c=JSON.stringify({email:claims.email,aud:claims.aud,email_verified:claims.email_verified});cache.put(key,c,240);
+    if(claims.iss!=="accounts.google.com"&&claims.iss!=="https://accounts.google.com")throw new Error("Google token issuer ไม่ถูกต้อง");
+    if(!claims.exp||Number(claims.exp)*1000<Date.now()+30000)throw new Error("Google token ใกล้หมดอายุ กรุณาเข้าสู่ระบบใหม่");
+    c=JSON.stringify({email:claims.email,aud:claims.aud,email_verified:claims.email_verified,iss:claims.iss,exp:claims.exp});cache.put(key,c,Math.min(240,Math.max(1,Math.floor(Number(claims.exp)-Date.now()/1000-30)));
   }
   const claims=JSON.parse(c);
-  if(claims.aud!==clientId||claims.email_verified!=="true")throw new Error("Google identity ไม่ผ่านการตรวจสอบ");
+  if(claims.aud!==clientId||claims.email_verified!=="true"||(claims.iss!=="accounts.google.com"&&claims.iss!=="https://accounts.google.com")||Number(claims.exp)*1000<Date.now())throw new Error("Google identity ไม่ผ่านการตรวจสอบ");
   const email=String(claims.email).trim().toLowerCase();
   const allowed=(p.getProperty("ALLOWED_EMAILS")||"").split(/[;,\n]/).map(x=>x.trim().toLowerCase()).filter(Boolean);
   if(!allowed.includes(email))throw new Error("บัญชี "+email+" ยังไม่ได้รับอนุญาตให้ใช้ LED-PI");
   const admins=(p.getProperty("ADMIN_EMAILS")||"").split(/[;,\n]/).map(x=>x.trim().toLowerCase()).filter(Boolean);
   return {email:email,role:admins.includes(email)?"admin":"editor"};
+}
+function safeSheetText_(value,maxLength){
+  let s=String(value==null?"":value).trim().slice(0,maxLength||500);
+  if(/^[=+@\\t\\r]/.test(s))s="'"+s;
+  return s;
 }
 function db_(){const id=PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");if(!id)throw new Error("ยังไม่ได้ initialize ฐานข้อมูล");return SpreadsheetApp.openById(id);}
 function getBootstrap(token){const user=verifyUser_(token);return {user:user,properties:listPropertiesInternal_(),limits:{maxUsers:30,storage:"Google Sheets"}};}
@@ -58,7 +65,7 @@ function saveProperty(token,input){
   const title=String(input.title||"").trim();if(!title||title.length>250)throw new Error("กรุณาระบุชื่อทรัพย์ (ไม่เกิน 250 ตัวอักษร)");
   const record={title:title},numeric=["area_rai","area_ngan","area_sq_wah","government_assessed","listing_asking","verified_transaction"];
   numeric.forEach(k=>{const v=input[k];if(v===""||v==null)record[k]="";else{const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error("ค่าตัวเลขไม่ถูกต้อง: "+k);record[k]=n;}});
-  ["asset_code","asset_type","province","district","subdistrict","address","auction_date","auction_status","status","source_url","notes"].forEach(k=>record[k]=String(input[k]||"").trim().slice(0,k==="notes"?3000:500));
+  ["asset_code","asset_type","province","district","subdistrict","address","auction_date","auction_status","status","source_url","notes"].forEach(k=>record[k]=safeSheetText_(input[k],k==="notes"?3000:500));
   record.status=record.status||"watchlist";if(!["watchlist","reviewing","passed","won"].includes(record.status))throw new Error("สถานะทรัพย์ไม่ถูกต้อง");
   if(record.source_url&&!/^https:\/\//i.test(record.source_url))throw new Error("Source URL ต้องเป็น HTTPS");
   const lock=LockService.getScriptLock();lock.waitLock(10000);
@@ -74,15 +81,17 @@ function saveProperty(token,input){
 function importCsv(token,csvText){
   const user=verifyUser_(token);if(typeof csvText!=="string"||!csvText.trim()||csvText.length>500000)throw new Error("CSV ว่างหรือมีขนาดเกิน 500 KB");
   const rows=Utilities.parseCsv(csvText);if(rows.length<2)throw new Error("CSV ต้องมีหัวตารางและข้อมูลอย่างน้อย 1 แถว");
-  const aliases={"ชื่อทรัพย์":"title","รายละเอียดทรัพย์":"title","รหัสทรัพย์":"asset_code","ประเภททรัพย์":"asset_type","จังหวัด":"province","อำเภอ":"district","ตำบล":"subdistrict","ราคาประเมินราชการ":"government_assessed","ราคาประกาศขาย":"listing_asking","ราคาซื้อขายจริง":"verified_transaction","วันขายทอดตลาด":"auction_date","สถานะ":"status"};
-  const headers=rows[0].map(h=>String(h).trim().toLowerCase()).map(h=>aliases[h]||h),allowed=SHEETS.Properties;
+  const aliases={"\\ufefftitle":"title","ชื่อทรัพย์":"title","รายละเอียดทรัพย์":"title","รหัสทรัพย์":"asset_code","ประเภททรัพย์":"asset_type","จังหวัด":"province","อำเภอ":"district","ตำบล":"subdistrict","ราคาประเมินราชการ":"government_assessed","ราคาประกาศขาย":"listing_asking","ราคาซื้อขายจริง":"verified_transaction","วันขายทอดตลาด":"auction_date","สถานะ":"status"};
+  const headers=rows[0].map((h,i)=>String(h).replace(/^\\ufeff/,"").trim().toLowerCase()).map(h=>aliases[h]||h),allowed=SHEETS.Properties;
   if(!headers.includes("title"))throw new Error("CSV ต้องมีคอลัมน์ title หรือ ชื่อทรัพย์");
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try{
     const sh=db_().getSheetByName("Properties"),now=new Date(),out=[];
     rows.slice(1).forEach((r,idx)=>{if(!r.some(v=>String(v).trim()))return;const o={};headers.forEach((h,i)=>{if(allowed.includes(h))o[h]=r[i]||"";});if(!String(o.title||"").trim())throw new Error("CSV แถว "+(idx+2)+" ไม่มีชื่อทรัพย์");
+      if(o.status&&!["watchlist","reviewing","passed","won"].includes(String(o.status)))throw new Error("CSV แถว "+(idx+2)+" มีสถานะไม่ถูกต้อง");
+      if(o.source_url&&!/^https:\\/\\//i.test(String(o.source_url)))throw new Error("CSV แถว "+(idx+2)+" Source URL ต้องเป็น HTTPS");
       ["government_assessed","listing_asking","verified_transaction","area_rai","area_ngan","area_sq_wah"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""){const n=Number(String(o[k]).replace(/,/g,""));if(!Number.isFinite(n)||n<0)throw new Error("CSV แถว "+(idx+2)+" มีค่า "+k+" ไม่ถูกต้อง");o[k]=n;}});
-      out.push(allowed.map(k=>k==="property_id"?Utilities.getUuid():k==="created_by"?user.email:k==="created_at"||k==="updated_at"?now:k==="status"?(o[k]||"watchlist"):(o[k]||"")));
+      out.push(allowed.map(k=>k==="property_id"?Utilities.getUuid():k==="created_by"?user.email:k==="created_at"||k==="updated_at"?now:k==="status"?(o[k]||"watchlist"):["title","asset_code","asset_type","province","district","subdistrict","address","auction_status","source_url","notes"].includes(k)?safeSheetText_(o[k],k==="notes"?3000:500):(o[k]||"")));
     });
     if(!out.length)throw new Error("ไม่พบแถวข้อมูลที่นำเข้าได้");if(sh.getLastRow()+out.length>5001)throw new Error("MVP จำกัดทะเบียนทรัพย์ 5,000 รายการ");
     sh.getRange(sh.getLastRow()+1,1,out.length,allowed.length).setValues(out);audit_(user.email,"import_csv","property",String(out.length),{rows:out.length});return {imported:out.length};
