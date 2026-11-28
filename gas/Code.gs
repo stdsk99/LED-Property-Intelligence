@@ -89,7 +89,7 @@ function importCsv(token,csvText){
     const sh=db_().getSheetByName("Properties"),now=new Date(),out=[];
     rows.slice(1).forEach((r,idx)=>{if(!r.some(v=>String(v).trim()))return;const o={};headers.forEach((h,i)=>{if(allowed.includes(h))o[h]=r[i]||"";});if(!String(o.title||"").trim())throw new Error("CSV แถว "+(idx+2)+" ไม่มีชื่อทรัพย์");
       if(o.status&&!["watchlist","reviewing","passed","won"].includes(String(o.status)))throw new Error("CSV แถว "+(idx+2)+" มีสถานะไม่ถูกต้อง");
-      if(o.source_url&&!/^https:\\/\\//i.test(String(o.source_url)))throw new Error("CSV แถว "+(idx+2)+" Source URL ต้องเป็น HTTPS");
+  if(o.source_url&&!/^https:\/\//i.test(String(o.source_url)))throw new Error("Source URL ต้องเป็น HTTPS");
       ["government_assessed","listing_asking","verified_transaction","area_rai","area_ngan","area_sq_wah"].forEach(k=>{if(o[k]!==undefined&&o[k]!==""){const n=Number(String(o[k]).replace(/,/g,""));if(!Number.isFinite(n)||n<0)throw new Error("CSV แถว "+(idx+2)+" มีค่า "+k+" ไม่ถูกต้อง");o[k]=n;}});
       out.push(allowed.map(k=>k==="property_id"?Utilities.getUuid():k==="created_by"?user.email:k==="created_at"||k==="updated_at"?now:k==="status"?(o[k]||"watchlist"):["title","asset_code","asset_type","province","district","subdistrict","address","auction_status","source_url","notes"].includes(k)?safeSheetText_(o[k],k==="notes"?3000:500):(o[k]||"")));
     });
