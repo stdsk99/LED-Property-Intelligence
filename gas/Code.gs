@@ -38,7 +38,7 @@ function verifyUser_(token){
     if(claims.aud!==clientId||claims.email_verified!=="true"||!claims.email)throw new Error("ไม่สามารถยืนยันบัญชี Google นี้ได้");
     if(claims.iss!=="accounts.google.com"&&claims.iss!=="https://accounts.google.com")throw new Error("Google token issuer ไม่ถูกต้อง");
     if(!claims.exp||Number(claims.exp)*1000<Date.now()+30000)throw new Error("Google token ใกล้หมดอายุ กรุณาเข้าสู่ระบบใหม่");
-    c=JSON.stringify({email:claims.email,aud:claims.aud,email_verified:claims.email_verified,iss:claims.iss,exp:claims.exp});cache.put(key,c,Math.min(240,Math.max(1,Math.floor(Number(claims.exp)-Date.now()/1000-30)));
+    c=JSON.stringify({email:claims.email,aud:claims.aud,email_verified:claims.email_verified,iss:claims.iss,exp:claims.exp});cache.put(key,c,Math.min(240,Math.max(1,Math.floor(Number(claims.exp)-Date.now()/1000-30))));
   }
   const claims=JSON.parse(c);
   if(claims.aud!==clientId||claims.email_verified!=="true"||(claims.iss!=="accounts.google.com"&&claims.iss!=="https://accounts.google.com")||Number(claims.exp)*1000<Date.now())throw new Error("Google identity ไม่ผ่านการตรวจสอบ");
@@ -82,7 +82,7 @@ function importCsv(token,csvText){
   const user=verifyUser_(token);if(typeof csvText!=="string"||!csvText.trim()||csvText.length>500000)throw new Error("CSV ว่างหรือมีขนาดเกิน 500 KB");
   const rows=Utilities.parseCsv(csvText);if(rows.length<2)throw new Error("CSV ต้องมีหัวตารางและข้อมูลอย่างน้อย 1 แถว");
   const aliases={"\\ufefftitle":"title","ชื่อทรัพย์":"title","รายละเอียดทรัพย์":"title","รหัสทรัพย์":"asset_code","ประเภททรัพย์":"asset_type","จังหวัด":"province","อำเภอ":"district","ตำบล":"subdistrict","ราคาประเมินราชการ":"government_assessed","ราคาประกาศขาย":"listing_asking","ราคาซื้อขายจริง":"verified_transaction","วันขายทอดตลาด":"auction_date","สถานะ":"status"};
-  const headers=rows[0].map((h,i)=>String(h).replace(/^\\ufeff/,"").trim().toLowerCase()).map(h=>aliases[h]||h),allowed=SHEETS.Properties;
+  const headers=rows[0].map((h,i)=>String(h).replace(/^\ufeff/,"").trim().toLowerCase()).map(h=>aliases[h]||h),allowed=SHEETS.Properties;
   if(!headers.includes("title"))throw new Error("CSV ต้องมีคอลัมน์ title หรือ ชื่อทรัพย์");
   const lock=LockService.getScriptLock();lock.waitLock(10000);
   try{
